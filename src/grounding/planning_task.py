@@ -144,6 +144,7 @@ class SpTask:
                 descr1 = act_st[-1]
             else:
                 descr1 = act_st[-1][0]
+            # Remake situations coze they could be synthesized by other agent
             act_sit_start, act_map_start, size = create_situation(descr1, ag_sign, whose)
             if agent == 'I':
                 I_sign = signs['I']
@@ -240,63 +241,64 @@ class SpTask:
                                                                                                self.signs, plan_sit,
                                                                                                plan_map)
                     subplans.append(subplan)
-                    # images of elementary actions that are used in subplan construction
-                    elem_acts_ims.extend(elem_acts_im)
-                    goal_plan.extend(plan)
-                    plan_sit.extend([pm[0].sign for pm in plan])
-                    plan_map.extend([pm[5][0].sign for pm in plan])
-                    pms_act = [pm[2] for pm in plan]
-                    pms_acts.extend(pms_act)
-                    # Add start and finish situations of Clarification and Abstraction or subplan to plan sits
-                    for element in plan:
-                        if element[2].sign.name == 'Clarify' or element[2].sign.name == 'Abstract':
-                            if len(element[2].effect) == 1:
+                    if glob_act[1] == 'I':
+                        # images of elementary actions that are used in subplan construction
+                        elem_acts_ims.extend(elem_acts_im)
+                        goal_plan.extend(plan)
+                        plan_sit.extend([pm[0].sign for pm in plan])
+                        plan_map.extend([pm[5][0].sign for pm in plan])
+                        pms_act = [pm[2] for pm in plan]
+                        pms_acts.extend(pms_act)
+                        # Add start and finish situations of Clarification and Abstraction or subplan to plan sits
+                        for element in plan:
+                            if element[2].sign.name == 'Clarify' or element[2].sign.name == 'Abstract':
+                                if len(element[2].effect) == 1:
+                                    start = list(element[2].cause[0].get_signs())[0]
+                                    finish = list(element[2].effect[0].get_signs())[0]
+                                else:
+                                    mean = None
+                                    for ind, m in element[2].sign.meanings.items():
+                                        if len(m.effect) == 1:
+                                            mean = m
+                                            break
+                                    else:
+                                        logging.debug('Can not find matrice with link to situation from images of sign {}'.format(
+                                            element[1].sign.name))
+                                    start = list(mean.cause[0].get_signs())[0]
+                                    finish = list(mean.effect[0].get_signs())[0]
+                                plan_sit.append(start)
+                                plan_sit.append(finish)
+                            elif 'subplan_' in element[2].sign.name:
                                 start = list(element[2].cause[0].get_signs())[0]
                                 finish = list(element[2].effect[0].get_signs())[0]
-                            else:
-                                mean = None
-                                for ind, m in element[2].sign.meanings.items():
-                                    if len(m.effect) == 1:
-                                        mean = m
-                                        break
-                                else:
-                                    logging.debug('Can not find matrice with link to situation from images of sign {}'.format(
-                                        element[1].sign.name))
-                                start = list(mean.cause[0].get_signs())[0]
-                                finish = list(mean.effect[0].get_signs())[0]
-                            plan_sit.append(start)
-                            plan_sit.append(finish)
-                        elif 'subplan_' in element[2].sign.name:
-                            start = list(element[2].cause[0].get_signs())[0]
-                            finish = list(element[2].effect[0].get_signs())[0]
-                            plan_sit.append(start)
-                            plan_sit.append(finish)
-                            mapName = 'map_they_'+finish.name.split('_')[-1]
-                            plan_map.append(self.signs[mapName])
-                    global SUBPLAN_COUNTER
-                    # If there are Clarify and Abstract in subplan - save
-                    logging.info('\tПоиск уточненных частей плана %s агента... ' % I_obj[0].name)
-                    if glob_act[1] == 'I':
-                        pms_plan = [act[2].sign.name + ':' + str(plan.index(act)) for act in plan]
-                        str_plan = ''.join(el + ' ' for el in pms_plan)
-                        if 'Abstract' in str_plan and 'Clarify' in str_plan:
-                            # Save plan between abstr and clarify acts iff the refinement level is identical
-                            for st, end, _ in ut.tree_refinement(str_plan, opendelim='Clarify', closedelim='Abstract'):
-                                if end - st + 1 != len(pms_act):
-                                    start_sign = list(pms_act[st].cause[0].get_signs())[0]
-                                    if not start_sign.meanings:
-                                        start_mean = start_sign.images[1].copy('image', 'meaning')
-                                    else:
-                                        start_mean = start_sign.meanings[1]
-                                    finish_sign = list(pms_act[end].effect[0].get_signs())[0]
-                                    if not finish_sign.meanings:
-                                        finish_mean = finish_sign.images[1].copy('image', 'meaning')
-                                    else:
-                                        finish_mean = finish_sign.meanings[1]
-                                    SUBPLAN_COUNTER += 1
-                                    plan_sign, _, _ = self.save_plan(start_mean, finish_mean, plan[st:end + 1],
-                                                                     'subplan_' + str(SUBPLAN_COUNTER))
-                                    #self_plans.append((plan_sign, st, len(pms_act) - 1))
+                                plan_sit.append(start)
+                                plan_sit.append(finish)
+                                mapName = 'map_they_'+finish.name.split('_')[-1]
+                                plan_map.append(self.signs[mapName])
+                        global SUBPLAN_COUNTER
+                        # If there are Clarify and Abstract in subplan - save
+                        logging.info('\tПоиск уточненных частей плана %s агента... ' % I_obj[0].name)
+                        if glob_act[1] == 'I':
+                            pms_plan = [act[2].sign.name + ':' + str(plan.index(act)) for act in plan]
+                            str_plan = ''.join(el + ' ' for el in pms_plan)
+                            if 'Abstract' in str_plan and 'Clarify' in str_plan:
+                                # Save plan between abstr and clarify acts iff the refinement level is identical
+                                for st, end, _ in ut.tree_refinement(str_plan, opendelim='Clarify', closedelim='Abstract'):
+                                    if end - st + 1 != len(pms_act):
+                                        start_sign = list(pms_act[st].cause[0].get_signs())[0]
+                                        if not start_sign.meanings:
+                                            start_mean = start_sign.images[1].copy('image', 'meaning')
+                                        else:
+                                            start_mean = start_sign.meanings[1]
+                                        finish_sign = list(pms_act[end].effect[0].get_signs())[0]
+                                        if not finish_sign.meanings:
+                                            finish_mean = finish_sign.images[1].copy('image', 'meaning')
+                                        else:
+                                            finish_mean = finish_sign.meanings[1]
+                                        SUBPLAN_COUNTER += 1
+                                        plan_sign, _, _ = self.save_plan(start_mean, finish_mean, plan[st:end + 1],
+                                                                         'subplan_' + str(SUBPLAN_COUNTER))
+                                        #self_plans.append((plan_sign, st, len(pms_act) - 1))
             # # add description of full plan
             # if isinstance(goal_plan[0][-1], dict):
             #     descr1 = goal_plan[0][-1]

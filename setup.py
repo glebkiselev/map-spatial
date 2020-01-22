@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 setup(
     name='mapspatial',
     version='1.0.0',
-    packages=['mapspatial', 'mapspatial.grounding', 'mapspatial.search', 'mapspatial.agent', 'mapspatial.parsers', 'mapspatial.temp'],
+    packages=['mapspatial', 'mapspatial.grounding', 'mapspatial.search', 'mapspatial.agent', 'mapspatial.parsers'],
     package_dir={'mapspatial': 'src'},
     url='https://github.com/glebkiselev/map-spatial.git',
     license='',

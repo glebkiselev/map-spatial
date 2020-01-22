@@ -5,7 +5,7 @@ import pickle
 import sys
 import time
 import os
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import datetime
 from multiprocessing import Process, Pipe
 import platform
@@ -484,11 +484,13 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
     # CALL mapplanner and get pddl solution. But this do only major agent
     flag = True
     solutions = []
+    self_solutions = []
     if name == major_agent:
         map = {}
         subtasks = workman.get_scenario(pddl_task, task_paths[-2])
         for sub in subtasks:
             solution = {}
+            self_sol = {}
             act_agent = sub[0][-1]
             if act_agent == name or act_agent == 'I':
                 if map:
@@ -497,60 +499,44 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
                 subtask_solution, map = workman.search_solution()
                 if isinstance(subtask_solution[0], list):
                     subtask_solution = subtask_solution[0]
+                minor_message = []
+                for action in subtask_solution:
+                    minor_message.append((None, action[1], None, None, (None, None), (None, None), action[6]))
                 solution[sub[0]] = subtask_solution
-                solutions.append(solution)
+                self_sol[sub[0]] = minor_message
+                solutions.append(self_sol)
+                self_solutions.append((self_sol, solution))
             else:
                 childpipe.send((act_agent, sub, map))
-                minor_solutions = childpipe.recv()
-                ag_sign = workman.task.signs[act_agent]
-                ag_solution = []
-                for act in minor_solutions[0]:
-                    act = list(act)
-                    act[3] = ag_sign
-                    ag_solution.append(act)
-                solution[sub[0]] = ag_solution
+                ag_solution = childpipe.recv()
+                # ag_sign = workman.task.signs[act_agent]
+                # ag_solution = []
+                # for act in minor_solutions[0]:
+                #     act = list(act)
+                #     act[3] = ag_sign
+                #     ag_solution.append(act)
+                solution[sub[0]] = ag_solution[0]
                 solutions.append(solution)
-                map = minor_solutions[1]
-        file_name = 'major_sol_' + datetime.now().strftime('%m_%d_%H_%M') + name +'.tmp'
-        pickle.dump(solutions, open(file_name, 'wb'))
+                map = ag_solution[1]
         childpipe.send('STOP')
-        childpipe.send(file_name)
+        childpipe.send(solutions)
     else:
         while flag:
             subtask = childpipe.recv()
             if subtask == 'STOP':
-                msfile = childpipe.recv()
-                file_name = ''
-                for el in msfile:
-                    file_name+=el
-                major_solutions = pickle.load(open(file_name, 'rb'))
-                os.remove(file_name)
+                major_solutions = childpipe.recv()
                 if major_solutions:
                     major_agent_sign = workman.task.signs[major_agent]
-                    I_sign = workman.task.signs['I']
                     for subplan in major_solutions:
                         solution = {}
                         for act_descr, ag_solution in subplan.items():
-                            ag_solution_new = []
                             if act_descr[1] == 'I':
-                                for act in ag_solution:
-                                    act = list(act)
-                                    act[3] = major_agent_sign
-                                    ag_solution_new.append(act)
                                 act_descr_new = (act_descr[0], major_agent_sign.name)
                             elif act_descr[1] == name:
-                                for act in ag_solution:
-                                    act = list(act)
-                                    act[3] = I_sign
-                                    ag_solution_new.append(act)
                                 act_descr_new = (act_descr[0], 'I')
                             else:
-                                for act in ag_solution:
-                                    act = list(act)
-                                    act[3] = workman.task.signs[act[3].name]
-                                    ag_solution_new.append(act)
                                 act_descr_new = act_descr
-                            solution[act_descr_new] = ag_solution_new
+                            solution[act_descr_new] = ag_solution
                             solutions.append(solution)
                     logging.info("Конечное решение получено агентом {0}".format(name))
                 else:
@@ -563,10 +549,33 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
                 subtask_solution, map = workman.search_solution()
                 if isinstance(subtask_solution[0], list):
                     subtask_solution = subtask_solution[0]
+                solution = {}
+                pddl_name = (subtask[0][0][0], 'I')
+                solution[pddl_name] = subtask_solution
+                self_sol = {}
+                major_message = []
+                for action in subtask_solution:
+                    major_message.append((None, action[1], None, None, (None, None), (None, None), action[6]))
+                self_sol[subtask[0][0]] = major_message
+                self_solutions.append((self_sol, solution))
                 if subtask_solution:
-                    childpipe.send((subtask_solution, map))
+                    childpipe.send((major_message, map))
                 else:
                     logging.info("Агент {0} не смог синтезировать план".format(name))
+    for act1 in copy(solutions):
+        for act1_name, act1_map in act1.items():
+            for act2, self_act in self_solutions:
+                flag = False
+                for act2_name, act2_map in act2.items():
+                    if act1_name[0] == act2_name[0]:
+                        if act1_map == act2_map:
+                            ind = solutions.index(act1)
+                            solutions[ind] = self_act
+                            flag = True
+                            break
+                if flag:
+                    break
+
     file_name = workman.task.save_signs(solutions)
 
     if file_name:
