@@ -352,7 +352,11 @@ class SpAgent(PlanningAgent):
         self.task.start_map = self.task.goal_map
         self.task.init_cl_lv = self.task.goal_cl_lv
         self.task.iteration = max(self.task.additions[0])
-        return solution, self.task.additions[0][max(self.task.additions[0])]
+        if isinstance(solution[0][-1][-1], dict):
+            map_goal = solution[0][-1][-1]
+        else:
+            map_goal = solution[0][-1][-1][1]
+        return solution, map_goal
 
     def change_start(self, map, act):
         if map != self.task.additions[0][max(self.task.additions[0])]:
@@ -501,7 +505,7 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
                     subtask_solution = subtask_solution[0]
                 minor_message = []
                 for action in subtask_solution:
-                    minor_message.append((None, action[1], None, None, (None, None), (None, None), action[6]))
+                    minor_message.append((None, action[1], None, None, (None, None), (None, None), deepcopy(action[6])))
                 solution[sub[0]] = subtask_solution
                 self_sol[sub[0]] = minor_message
                 solutions.append(self_sol)
@@ -555,7 +559,7 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
                 self_sol = {}
                 major_message = []
                 for action in subtask_solution:
-                    major_message.append((None, action[1], None, None, (None, None), (None, None), action[6]))
+                    major_message.append((None, action[1], None, None, (None, None), (None, None), deepcopy(action[6])))
                 self_sol[subtask[0][0]] = major_message
                 self_solutions.append((self_sol, solution))
                 if subtask_solution:

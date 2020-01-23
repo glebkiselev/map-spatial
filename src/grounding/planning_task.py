@@ -218,7 +218,6 @@ class SpTask:
             agents = [self.signs["I"]]
             agents.extend(They_signs)
 
-
             logging.debug('\tCleaning SWM...')
 
             pms_acts = []
@@ -298,28 +297,7 @@ class SpTask:
                                         SUBPLAN_COUNTER += 1
                                         plan_sign, _, _ = self.save_plan(start_mean, finish_mean, plan[st:end + 1],
                                                                          'subplan_' + str(SUBPLAN_COUNTER))
-                                        #self_plans.append((plan_sign, st, len(pms_act) - 1))
-            # # add description of full plan
-            # if isinstance(goal_plan[0][-1], dict):
-            #     descr1 = goal_plan[0][-1]
-            # else:
-            #     descr1 = goal_plan[0][-1][0]
-            # self.start_situation, self.start_map, _ = create_situation(descr1, self.signs[goal_plan[0][3].name])
-            # self.start_situation.copy('image', 'meaning')
-            # if isinstance(goal_plan[-1][-1], dict):
-            #     descr2 = goal_plan[-1][-1]
-            # else:
-            #     descr2 = goal_plan[-1][-1][1]
-            # self.goal_situation, self.goal_map, _ = create_situation(descr2, self.signs[goal_plan[-1][3].name])
-            # self.goal_situation.copy('image', 'meaning')
-            # if self.start_situation.sign not in plan_sit:
-            #     plan_sit.append(self.start_situation.sign)
-            # if self.start_map.sign not in plan_map:
-            #     plan_map.append(self.start_map.sign)
-            # if self.goal_situation.sign not in plan_sit:
-            #     plan_sit.append(self.goal_situation.sign)
-            # if self.goal_map.sign not in plan_map:
-            #     plan_map.append(self.goal_map.sign)
+
             """
             Clear model from non plan actions and situations
             """

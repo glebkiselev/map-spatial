@@ -349,8 +349,12 @@ class SpSearch(MapSearch):
                     cell = next_pm.sign.images[2].spread_down_activity_view(1)['cell-4']
                     ag_coords = cell[0] + ((cell[2] - cell[0]) // 2), cell[1] + ((cell[3] - cell[1]) // 2)
                     place = (ag_coords, side)
-                plan.append((active_pm.sign.images[1], action[1].sign.name, action[1], agent, place, (next_map.sign.images[1], self.clarification_lv), self.additions[0][iteration]))
-                print("{0}. act: Clarify, cell: {1}, dir: {2}".format(str(iteration), cell,
+                if max(self.additions[0]) > 0:
+                    descr = max(self.additions[0]) - 1
+                else:
+                    descr = max(self.additions[0])
+                plan.append((active_pm.sign.images[1], action[1].sign.name, action[1], agent, place, (next_map.sign.images[1], self.clarification_lv), self.additions[0][descr]))
+                print("{0}. act: Clarify, cell: {1}, dir: {2}".format(str(cycle), cell,
                                                                             side))
 
             elif action[1].sign.name == 'Abstract':
@@ -380,8 +384,12 @@ class SpSearch(MapSearch):
                     cell = next_pm.sign.images[2].spread_down_activity_view(1)['cell-4']
                     ag_coords = cell[0] + ((cell[2] - cell[0]) // 2), cell[1] + ((cell[3] - cell[1]) // 2)
                     place = (ag_coords, side)
-                plan.append((active_pm.sign.images[1], action[1].sign.name, action[1], agent, place, (next_map.sign.images[1], self.clarification_lv), self.additions[0][iteration]))
-                print("{0}. act: Abstract, cell: {1}, dir: {2}".format(str(iteration), cell,
+                if max(self.additions[0]) > 0:
+                    descr = max(self.additions[0]) - 1
+                else:
+                    descr = max(self.additions[0])
+                plan.append((active_pm.sign.images[1], action[1].sign.name, action[1], agent, place, (next_map.sign.images[1], self.clarification_lv), self.additions[0][descr]))
+                print("{0}. act: Abstract, cell: {1}, dir: {2}".format(str(cycle), cell,
                                                                             side))
 
             elif 'subplan_' in action[1].sign.name:
@@ -425,7 +433,7 @@ class SpSearch(MapSearch):
                     if included_sit:
                         if plan is None: plan = []
                         plan.append((active_pm.sign.images[1], action[1].sign.name, action[1], action[0], (ag_place, direction),
-                                     (next_map, self.clarification_lv), self.additions[0][iteration]))
+                                     (next_map, self.clarification_lv), (self.additions[0][max(self.additions[0])-1], self.additions[0][max(self.additions[0])])))
                     else:
                         continue
                 else:
@@ -435,7 +443,7 @@ class SpSearch(MapSearch):
                     included_sit = [sit for sit in self.exp_sits if sit.includes('image', next_pm)]
                     if included_sit and included_map:
                         plan.append(
-                            (active_pm, action[1].sign.name, action[1], action[0], None, (None, self.clarification_lv), self.additions[0][iteration]))
+                            (active_pm, action[1].sign.name, action[1], action[0], None, (None, self.clarification_lv), (self.additions[0][max(self.additions[0])-1], self.additions[0][max(self.additions[0])])))
 
 
             if next_pm.sign.images[1].includes('image', goal_pm.sign.images[1]):
