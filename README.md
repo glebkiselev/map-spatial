@@ -10,14 +10,15 @@ logic (1982).
 2. [Task and Spatial Planning by the Cognitive Agent with Human-like Knowledge Representation](https://www.springerprofessional.de/en/task-and-spatial-planning-by-the-cognitive-agent-with-human-like/16109284)
 
 ## Installation
-To use this library you need to install map-core.
+To use this library you need to install map-core and map-multi (to use multiagent version).
 To install the current release:
 
 ```
->>>cd map-planner
->>>git checkout map-spatial
+>>>source venv/bin/activate
+>>>git clone https://github.com/glebkiselev/map-spatial.git
+>>>cd map-spatial
 >>>python3 setup.py sdist
->>>pip3 install .
+>>>python3 setup.py install
 ```
 
 To use astar heuristic in path planning:
@@ -30,7 +31,7 @@ To use astar heuristic in path planning:
 To run the test example:
 
 ```
-python3 test.py
+python3 test2.py
 ```
 
 #### Try your tasks

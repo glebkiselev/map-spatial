@@ -24,7 +24,7 @@ def main(args):
             path = args.config_path
     else:
         if not args.config_path:
-            path = create_config(task_num = '0', delim=delim, backward = 'False', task_type = 'maspatial')
+            path = create_config(task_num = '0', delim=delim, backward = 'False', task_type = 'spatial')
         else:
             path = args.config_path
 

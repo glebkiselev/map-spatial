@@ -114,12 +114,6 @@ class SpAgent(PlanningAgent):
                 scenario.append(((action[1], action[3].name), spat_cm, spat_map, cur_sit, new_sit, cl_lv))
                 cur_sit = new_sit
                 prev_ag = action[3].name
-            # if cur_sit['objects'] != self.task.goal_state['objects']:
-            #     for agent in self.agents:
-            #         if agent == 'I':
-            #             agent = self.name
-            #         spat_cm, spat_map, cl_lv, new_sit = self.get_spatial_finish_blocks(cur_sit, cl_lv, size, agent)
-            #         scenario.append((('', agent), spat_cm, spat_map, cur_sit, new_sit, cl_lv))
         return scenario
 
     def get_spatial_sit_blocks(self, action, cur_sit, prev_size, prev_cl):
@@ -250,15 +244,7 @@ class SpAgent(PlanningAgent):
                     new_sit[ag_name]['handempty'] = {'cause':[], 'effect':[]}
         region_map, cell_map_pddl, cell_location, near_loc, cell_coords, size, cl_lv = signs_markup(new_sit, self.task.additions[3],
                                                                                                ag_name, size = size, cl_lv=cl_lv)
-        # if prev_cl > cl_lv:
-        #     oldx = prev_size[2] - prev_size[0]
-        #     ox = size[2] - size[0]
-        #     if oldx < ox:
-        #         region_map, cell_map_pddl, cell_location, near_loc, cell_coords, size, cl_lv = signs_markup(new_sit,
-        #                                                                                                     self.task.additions[3],
-        #                                                                                                     ag_name,
-        #                                                                                                     size=prev_size,
-        #                                                                                                     cl_lv=cl_lv)
+
         agent_state_action = state_prediction(self.task.signs[ag_name], new_sit, self.task.signs)
         conditions_new = get_conditions(new_sit, action, obj.name, ground_block)
         new_sit['conditions'] = conditions_new
@@ -513,12 +499,6 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
             else:
                 childpipe.send((act_agent, sub, map))
                 ag_solution = childpipe.recv()
-                # ag_sign = workman.task.signs[act_agent]
-                # ag_solution = []
-                # for act in minor_solutions[0]:
-                #     act = list(act)
-                #     act[3] = ag_sign
-                #     ag_solution.append(act)
                 solution[sub[0]] = ag_solution[0]
                 solutions.append(solution)
                 map = ag_solution[1]
@@ -566,20 +546,19 @@ def agent_activation(agpath, agtype, name, agents, problem, backward, subsearch,
                     childpipe.send((major_message, map))
                 else:
                     logging.info("Агент {0} не смог синтезировать план".format(name))
-    for act1 in copy(solutions):
+
+    for ind, act1 in enumerate(copy(solutions)):
         for act1_name, act1_map in act1.items():
             for act2, self_act in self_solutions:
                 flag = False
                 for act2_name, act2_map in act2.items():
                     if act1_name[0] == act2_name[0]:
                         if act1_map == act2_map:
-                            ind = solutions.index(act1)
                             solutions[ind] = self_act
                             flag = True
                             break
                 if flag:
                     break
-
     file_name = workman.task.save_signs(solutions)
 
     if file_name:
