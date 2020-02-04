@@ -2,7 +2,9 @@ from mapspatial.mapplanner import MapPlanner
 import argparse, os, sys
 from config_master import create_config, get_config
 import platform
+from memory_profiler import profile
 
+#@profile
 def main(args):
     if platform.system() != 'Windows':
         delim = '/'
@@ -24,7 +26,7 @@ def main(args):
             path = args.config_path
     else:
         if not args.config_path:
-            path = create_config(task_num = '0', delim=delim, backward = 'False', task_type = 'spatial')
+            path = create_config(task_num = '1', delim=delim, backward = 'False', task_type = 'spatial')
         else:
             path = args.config_path
 
