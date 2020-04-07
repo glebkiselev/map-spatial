@@ -338,10 +338,13 @@ class SpAgent(PlanningAgent):
         self.task.start_map = self.task.goal_map
         self.task.init_cl_lv = self.task.goal_cl_lv
         self.task.iteration = max(self.task.additions[0])
-        if isinstance(solution[0][-1][-1], dict):
-            map_goal = solution[0][-1][-1]
+        if solution:
+            if isinstance(solution[0][-1][-1], dict):
+                map_goal = solution[0][-1][-1]
+            else:
+                map_goal = solution[0][-1][-1][1]
         else:
-            map_goal = solution[0][-1][-1][1]
+            raise Exception("Не удалось синтезировать план.")
         return solution, map_goal
 
     def change_start(self, map, act):

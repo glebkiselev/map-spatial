@@ -2,7 +2,7 @@ from mapspatial.mapplanner import MapPlanner
 import argparse, os, sys
 from config_master import create_config, get_config
 import platform
-from memory_profiler import profile
+#from memory_profiler import profile
 
 #@profile
 def main(args):
